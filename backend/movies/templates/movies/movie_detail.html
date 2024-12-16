@@ -1,0 +1,195 @@
+{# templates/movies/movie_detail.html #}
+{% extends 'movies/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- 영화 상세 정보 -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h1 class="text-3xl font-bold mb-4">{{ movie.title }}</h1>
+        {% if movie.is_prized %}
+        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-sm">
+            수상작
+        </span>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-4">영화 정보</h2>
+                <dl class="space-y-2">
+                    <dt class="font-medium">감독</dt>
+                    <dd class="text-gray-600">{{ movie.director }}</dd>
+                    
+                    <dt class="font-medium">배우</dt>
+                    <dd class="text-gray-600">{{ movie.actors }}</dd>
+                    
+                    <dt class="font-medium">장르</dt>
+                    <dd class="text-gray-600">{{ movie.genre }}</dd>
+                    
+                    <dt class="font-medium">상영시간</dt>
+                    <dd class="text-gray-600">{{ movie.runtime }}분</dd>
+                    
+                    <dt class="font-medium">관람연령</dt>
+                    <dd class="text-gray-600">{{ movie.age }}세 이상</dd>
+                </dl>
+            </div>
+            
+            <div>
+                <h2 class="text-xl font-semibold mb-4">줄거리</h2>
+                <p class="text-gray-600">{{ movie.content }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 평점 및 좋아요 섹션 -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <span class="text-2xl text-yellow-500">★</span>
+                <span class="text-2xl ml-2">{{ movie.rates }}</span>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="flex items-center space-x-4">
+                <!-- 평점 입력 폼 -->
+                <form id="ratingForm" class="flex items-center">
+                    {% csrf_token %}
+                    <select name="rate" class="mr-2 p-2 border rounded">
+                        <option value="">평점 선택</option>
+                        {% for i in "12345" %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" 
+                            class="bg-yellow-500 text-white px-4 py-2 rounded">
+                        평점 주기
+                    </button>
+                </form>
+
+                <!-- 좋아요 버튼 -->
+                <button id="likeButton" 
+                        class="flex items-center space-x-1 bg-red-500 text-white px-4 py-2 rounded">
+                    <span class="heart-icon">♥</span>
+                    <span id="likeCount">0</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 댓글 섹션 -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">댓글</h2>
+        
+        {% if user.is_authenticated %}
+        <form id="commentForm" class="mb-6">
+            {% csrf_token %}
+            <textarea name="content" 
+                      class="w-full p-2 border rounded mb-2" 
+                      placeholder="댓글을 입력하세요..."></textarea>
+            <button type="submit" 
+                    class="bg-blue-500 text-white px-4 py-2 rounded">
+                댓글 작성
+            </button>
+        </form>
+        {% endif %}
+
+        <div id="commentsList" class="space-y-4">
+            {% for comment in movie.moviecomment_set.all %}
+            <div class="border-b pb-4">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="font-medium">{{ comment.comment.user.username }}</div>
+                    {% if user == comment.comment.user %}
+                    <button class="text-red-500 hover:text-red-700" 
+                            onclick="deleteComment({{ comment.comment.id }})">
+                        삭제
+                    </button>
+                    {% endif %}
+                </div>
+                <p class="text-gray-600">{{ comment.comment.content }}</p>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-center">아직 댓글이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+// 평점 제출
+document.getElementById('ratingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch(`/movies/${movieId}/ratings/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// 좋아요 토글
+document.getElementById('likeButton').addEventListener('click', async () => {
+    try {
+        const response = await fetch(`/movies/${movieId}/likes/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('likeCount').textContent = data.likes;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// 댓글 작성
+document.getElementById('commentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch(`/movies/${movieId}/comments/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// 댓글 삭제
+async function deleteComment(commentId) {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+    
+    try {
+        const response = await fetch(`/movies/${movieId}/comments/${commentId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+</script>
+{% endblock %}

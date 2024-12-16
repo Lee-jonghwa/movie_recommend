@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Movie Review{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- 네비게이션 바 -->
+    <nav class="bg-gray-800 text-white">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- 로고 -->
+                <a href="{% url 'movies:movie_list' %}" class="flex items-center">
+                    <i class="fas fa-film text-2xl mr-2"></i>
+                    <span class="font-bold text-xl">Movie Review</span>
+                </a>
+
+                <!-- 메인 메뉴 -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="{% url 'movies:movie_list' %}" 
+                       class="py-2 px-3 rounded-md hover:bg-gray-700 transition">
+                        영화 목록
+                    </a>
+                    {% if request.GET.is_prized %}
+                        <a href="{% url 'movies:movie_list' %}?is_prized=true" 
+                           class="py-2 px-3 rounded-md hover:bg-gray-700 transition">
+                            수상작
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- 사용자 메뉴 -->
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <span class="text-gray-300">{{ user.username }}</span>
+                        <a href="{% url 'accounts:logout' %}" 
+                           class="bg-red-600 py-2 px-4 rounded-md hover:bg-red-700 transition">
+                            로그아웃
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" 
+                           class="py-2 px-4 rounded-md hover:bg-gray-700 transition">
+                            로그인
+                        </a>
+                        <a href="{% url 'accounts:signup' %}" 
+                           class="bg-blue-600 py-2 px-4 rounded-md hover:bg-blue-700 transition">
+                            회원가입
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 모바일 메뉴 (햄버거 메뉴) -->
+    <div class="md:hidden">
+        <div id="mobile-menu" class="hidden bg-gray-800 pb-4">
+            <div class="container mx-auto px-4">
+                <a href="{% url 'movies:movie_list' %}" 
+                   class="block py-2 px-4 text-white hover:bg-gray-700">
+                    영화 목록
+                </a>
+                {% if request.GET.is_prized %}
+                    <a href="{% url 'movies:movie_list' %}?is_prized=true" 
+                       class="block py-2 px-4 text-white hover:bg-gray-700">
+                        수상작
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 메시지/알림 -->
+    {% if messages %}
+    <div class="container mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} mb-4">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 메인 컨텐츠 -->
+    <main class="flex-grow">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="bg-gray-800 text-white py-8 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 사이트 정보 -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Movie Review</h3>
+                    <p class="text-gray-400">
+                        최신 영화 리뷰와 평점을 공유하는 커뮤니티입니다.
+                    </p>
+                </div>
+
+                <!-- 빠른 링크 -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">빠른 링크</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'movies:movie_list' %}" 
+                               class="text-gray-400 hover:text-white">
+                                영화 목록
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'movies:movie_list' %}?is_prized=true" 
+                               class="text-gray-400 hover:text-white">
+                                수상작 보기
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 소셜 미디어 -->
+                <div>
+                    <h3 class="text-lg font-bold mb-4">팔로우</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-twitter text-2xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-facebook text-2xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-instagram text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Movie Review. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 모바일 메뉴 JavaScript -->
+    <script>
+        const mobileMenuButton = document.querySelector('[aria-label="Main menu"]');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

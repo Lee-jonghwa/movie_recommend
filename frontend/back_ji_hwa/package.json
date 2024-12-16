@@ -1,0 +1,29 @@
+{
+  "name": "back_ji_hwa",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@egjs/vue3-flicking": "^4.11.4",
+    "animejs": "^3.2.2",
+    "axios": "^1.7.7",
+    "bootstrap": "^5.3.3",
+    "openai": "^4.73.0",
+    "pinia": "^2.2.6",
+    "pinia-plugin-persistedstate": "^4.1.3",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5",
+    "vue3-flicking": "^0.0.1",
+    "vuetify": "^3.7.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.4",
+    "vite": "^5.4.10",
+    "vite-plugin-vue-devtools": "^7.5.4"
+  }
+}
